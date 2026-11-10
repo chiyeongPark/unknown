@@ -27,14 +27,16 @@
                 $("#disp2").val(cur+n);
             }
             else {
-                
+                let result = eval(cur);
+                $("#disp1").val(cur);
+                $("#disp2").val(result);
             }
         });
     });
     </script>
 <body>
     <h1>계산기</h1>
-    <div id=""calc>
+    <div id="calc">
         <div>
             <input type="text" class="disp" id="disp1" readonly>
              <input type="text" class="disp" id="disp2" readonly>
