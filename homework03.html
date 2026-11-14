@@ -20,18 +20,52 @@
             let n= $(this).val();
             $("#disp2").val(cur+n);
         });
-        $(".op").click(function(){
-           let cur = $("#disp2").val();
-            let n= $(this).val();
-            if(n != "=") {
-                $("#disp2").val(cur+n);
-            }
-            else {
-                let result = eval(cur);
-                $("#disp1").val(cur);
-                $("#disp2").val(result);
-            }
-        });
+       $(".op").click(function(){
+                let cur = $("#disp2").val();
+                let n = $(this).val();
+
+                if(n != "=") {
+                    $("#disp2").val(cur+n);
+                }
+                else {
+                    let operator = "";
+                    let num1 = "";
+                    let num2 = "";
+
+                    for(let i=0; i<cur.length; i++){
+                        if(cur[i] == "+" || cur[i] == "-" ||
+                           cur[i] == "*" || cur[i] == "/") {
+
+                            operator = cur[i];
+                            num1 = cur.substring(0,i);
+                            num2 = cur.substring(i+1);
+                            break;
+                        }
+                    }
+
+                    num1 = Number(num1);
+                    num2 = Number(num2);
+
+                    let result;
+
+                    if(operator == "+"){
+                        result = num1 + num2;
+                    }
+                    else if(operator == "-"){
+                        result = num1 - num2;
+                    }
+                    else if(operator == "*"){
+                        result = num1 * num2;
+                    }
+                    else if(operator == "/"){
+                        result = num1 / num2;
+                    }
+
+                    $("#disp1").val(cur);
+                    $("#disp2").val(result);
+                }
+            });
+
           $(".func").click(function(){
                 $("#disp1").val("");
                 $("#disp2").val("");
