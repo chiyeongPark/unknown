@@ -1,100 +1,253 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<style>
-    h1 { text-align: center;}
-    .disp {width: 205px; height: 40px; margin-top: 3px;}
-    .disp {text-align: right; font-family: "Oxanium", sans-serif; font-size: 22px;}
-    input[type=button] {width: 50px; height: 50px; margin-top: 5px; text-align: center; vertical-align: middle;}
-    #calc {width: 220px; margin-left: auto; margin-right: auto;}
-</style>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script>
-    $(document).ready(function(){
-        $(".num").click(function(){
-           let cur = $("#disp2").val();
-            let n= $(this).val();
-            $("#disp2").val(cur+n);
-        });
-       $(".op").click(function(){
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공학용 계산기</title>
+
+    <style>
+        h1 {
+            text-align: center;
+        }
+
+        .disp {
+            width: 205px;
+            height: 40px;
+            margin-top: 3px;
+            text-align: right;
+            font-family: "Oxanium", sans-serif;
+            font-size: 22px;
+        }
+
+        input[type=button] {
+            width: 50px;
+            height: 50px;
+            margin-top: 5px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        #calc {
+            width: 220px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script>
+        $(document).ready(function(){
+
+            let lastResult = 0;
+            let isFraction = false;
+
+            // 숫자 버튼
+            $(".num").click(function(){
+                let cur = $("#disp2").val();
+                let n = $(this).val();
+
+                if(isFraction) {
+                    $("#disp2").val("");
+                    isFraction = false;
+                    cur = "";
+                }
+
+                $("#disp2").val(cur+n);
+            });
+
+            // 사칙연산 버튼
+            $(".op").click(function(){
                 let cur = $("#disp2").val();
                 let n = $(this).val();
 
                 if(n != "=") {
+
+                    if(isFraction) {
+                        cur = lastResult.toString();
+                        $("#disp2").val(cur);
+                        isFraction = false;
+                    }
+
                     $("#disp2").val(cur+n);
                 }
                 else {
-                    let operator = "";
-                    let num1 = "";
-                    let num2 = "";
+                    try {
+                        let result = calculate(cur);
 
-                    for(let i=0; i<cur.length; i++){
-                        if(cur[i] == "+" || cur[i] == "-" ||
-                           cur[i] == "*" || cur[i] == "/") {
+                        lastResult = result;
+                        isFraction = false;
 
-                            operator = cur[i];
-                            num1 = cur.substring(0,i);
-                            num2 = cur.substring(i+1);
+                        $("#disp1").val(cur);
+                        $("#disp2").val(result);
+                    }
+                    catch(error) {
+                        $("#disp2").val("Error");
+                    }
+                }
+            });
+
+            // 공학용 버튼
+            $(".sci").click(function(){
+                let cur = $("#disp2").val();
+                let n = $(this).attr("data-value");
+
+                if(isFraction) {
+                    cur = lastResult.toString();
+                    isFraction = false;
+                }
+
+                $("#disp2").val(cur+n);
+            });
+
+            // AC 버튼
+            $(".func").click(function(){
+                $("#disp1").val("");
+                $("#disp2").val("");
+
+                lastResult = 0;
+                isFraction = false;
+            });
+
+            // 마지막 글자 삭제
+            $(".back").click(function(){
+                let cur = $("#disp2").val();
+
+                if(isFraction) {
+                    cur = lastResult.toString();
+                    isFraction = false;
+                }
+
+                $("#disp2").val(cur.slice(0,-1));
+            });
+
+            // S ⇔ D 버튼
+            $(".sd").click(function(){
+
+                let cur = $("#disp2").val();
+
+                if(cur == "" || cur == "Error") {
+                    return;
+                }
+
+                if(isFraction == false) {
+
+                    let numerator = 0;
+                    let denominator = 1;
+                    let minError = Infinity;
+
+                    // 소수를 분수로 변환
+                    for(let i=1; i<=10000; i++){
+
+                        let n = Math.round(lastResult * i);
+                        let error = Math.abs(lastResult - n/i);
+
+                        if(error < minError){
+                            minError = error;
+                            numerator = n;
+                            denominator = i;
+                        }
+
+                        if(error < 0.0000000001){
                             break;
                         }
                     }
 
-                    num1 = Number(num1);
-                    num2 = Number(num2);
-
-                    let result;
-
-                    if(operator == "+"){
-                        result = num1 + num2;
-                    }
-                    else if(operator == "-"){
-                        result = num1 - num2;
-                    }
-                    else if(operator == "*"){
-                        result = num1 * num2;
-                    }
-                    else if(operator == "/"){
-                        result = num1 / num2;
+                    // 최대공약수 구하기
+                    function gcd(a,b){
+                        return b == 0 ? a : gcd(b,a%b);
                     }
 
-                    $("#disp1").val(cur);
-                    $("#disp2").val(result);
+                    let common = gcd(
+                        Math.abs(numerator),
+                        denominator
+                    );
+
+                    numerator /= common;
+                    denominator /= common;
+
+                    $("#disp2").val(
+                        numerator + "/" + denominator
+                    );
+
+                    isFraction = true;
+
                 }
+                else {
+
+                    // 분수를 소수로 변환
+                    $("#disp2").val(lastResult);
+                    isFraction = false;
+
+                }
+
             });
 
-          $(".func").click(function(){
-                $("#disp1").val("");
-                $("#disp2").val("");
-            });
-    });
+            // 계산 함수
+            function calculate(expression) {
+                return eval(expression.replace(/pi/g, "Math.PI")
+                    .replace(/sin\(/g, "Math.sin(Math.PI/180*")
+                    .replace(/cos\(/g, "Math.cos(Math.PI/180*")
+                    .replace(/tan\(/g, "Math.tan(Math.PI/180*")
+                    .replace(/sqrt\(/g, "Math.sqrt(")
+                    .replace(/log\(/g, "Math.log10(")
+                    .replace(/ln\(/g, "Math.log(")
+                    .replace(/\^/g, "**"));
+            }
+
+        });
     </script>
+</head>
+
 <body>
-    <h1>계산기</h1>
+
+    <h1>공학용 계산기</h1>
+
     <div id="calc">
+
         <div>
             <input type="text" class="disp" id="disp1" readonly>
-             <input type="text" class="disp" id="disp2" readonly>
+            <input type="text" class="disp" id="disp2" readonly>
         </div>
+
+        <!-- 공학용 기능 -->
+        <input type="button" class="sci" value="sin" data-value="sin(">
+        <input type="button" class="sci" value="cos" data-value="cos(">
+        <input type="button" class="sci" value="tan" data-value="tan(">
+        <input type="button" class="func" value="AC"><br>
+
+        <input type="button" class="sci" value="log" data-value="log(">
+        <input type="button" class="sci" value="ln" data-value="ln(">
+        <input type="button" class="sci" value="√" data-value="sqrt(">
+        <input type="button" class="back" value="←"><br>
+
+        <input type="button" class="sci" value="x²" data-value="^2">
+        <input type="button" class="sci" value="xʸ" data-value="^">
+        <input type="button" class="sci" value="π" data-value="pi">
+        <input type="button" class="sd" value="S⇔D"><br>
+
+        <!-- 숫자 및 사칙연산 -->
         <input type="button" class="num" value="7">
         <input type="button" class="num" value="8">
         <input type="button" class="num" value="9">
-        <input type="button" class="op" value="+"><br>
-         <input type="button" class="num" value="4">
+        <input type="button" class="op" value="/"><br>
+
+        <input type="button" class="num" value="4">
         <input type="button" class="num" value="5">
         <input type="button" class="num" value="6">
-        <input type="button" class="op" value="-"><br>
-         <input type="button" class="num" value="1">
+        <input type="button" class="op" value="*"><br>
+
+        <input type="button" class="num" value="1">
         <input type="button" class="num" value="2">
         <input type="button" class="num" value="3">
-        <input type="button" class="op" value="*"><br>
-         <input type="button" class="func" value="ac">
+        <input type="button" class="op" value="-"><br>
+
+        <input type="button" class="sci" value=")" data-value=")">
         <input type="button" class="num" value="0">
         <input type="button" class="op" value="=">
-        <input type="button" class="op" value="/"><br>
+        <input type="button" class="op" value="+"><br>
+
     </div>
+
 </body>
 </html>
