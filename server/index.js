@@ -3,7 +3,7 @@ const http = require("http");
 //fs 모듈 불러오기
 const fs = require("fs");
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = process.env.PORT || 3000;
 
 // 서버 생성
 const server = http.createServer((req,res) => {
@@ -16,10 +16,10 @@ const server = http.createServer((req,res) => {
     //res.write("Hello, Node");
     //res.end(); // 응답 종료
     res.setHeader("Content-Type", "text/html");
-    const readStream = fs.createReadStream(_dirname+"/index.html", "utf8");
+    const readStream = fs.createReadStream(__dirname+"/index.html", "utf8");
     readStream.pipe(res);
 });
 // 서버 실행
-server.listen(PORT, ()=>{
+server.listen(PORT, "0.0.0.0", ()=>{
     console.log(`${PORT}번 포트로 서버 실행`);
 });
